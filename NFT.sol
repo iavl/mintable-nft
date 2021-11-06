@@ -12,17 +12,10 @@ contract NFT is ERC721Enumerable, Ownable {
     string baseURI;
     string public baseExtension = ".json";
 
-    uint256 nexTokenIndex = 1;
-
     constructor(
         string memory _name,
         string memory _symbol
     ) ERC721(_name, _symbol) {}
-
-    function getNextTokenId() internal returns (uint256 tokenId) {
-        tokenId = nexTokenIndex;
-        nexTokenIndex = nexTokenIndex.add(1);
-    }
 
     // internal
     function _baseURI() internal view virtual override returns (string memory) {
@@ -31,12 +24,14 @@ contract NFT is ERC721Enumerable, Ownable {
 
     // public
     function mint(address to) public onlyOwner {
-        _safeMint(to, getNextTokenId());
+        uint256 supply = totalSupply();
+        _safeMint(to, supply + 1);
     }
 
     function batchMint(address[] memory addrs) public onlyOwner {
+        uint256 supply = totalSupply();
         for (uint256 i; i < addrs.length; i++) {
-            _safeMint(msg.sender, getNextTokenId());
+            _safeMint(msg.sender, supply + i);
         }
     }
 
