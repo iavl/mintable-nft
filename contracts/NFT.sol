@@ -29,7 +29,7 @@ contract NFT is ERC721Enumerable, Ownable {
     function batchMint(address[] memory addrs) public onlyOwner {
         uint256 supply = totalSupply();
         for (uint256 i; i < addrs.length; i++) {
-            _safeMint(msg.sender, supply + i);
+            _safeMint(addrs[i], supply + i);
         }
     }
 
