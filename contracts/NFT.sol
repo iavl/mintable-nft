@@ -8,7 +8,7 @@ contract NFT is ERC721Enumerable, Pausable {
     using Strings for uint256;
 
     string public baseURI;
-    mapping(uint256 => string) private _tokenURIs;
+    mapping(uint256 => string) _tokenURIs;
 
     mapping(address => bool) public hasMinted;
 
@@ -24,28 +24,11 @@ contract NFT is ERC721Enumerable, Pausable {
         uint256 tokenId = totalSupply() + 1;
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
+
         hasMinted[msg.sender] = true;
     }
 
-    function walletOfOwner(address _owner)
-    public
-    view
-    returns (uint256[] memory)
-    {
-        uint256 ownerTokenCount = balanceOf(_owner);
-        uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-        for (uint256 i; i < ownerTokenCount; i++) {
-            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
-        }
-        return tokenIds;
-    }
-
-    function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+    function tokenURI(uint256 tokenId) public view override returns (string memory)
     {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
