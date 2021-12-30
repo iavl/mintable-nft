@@ -1,0 +1,21 @@
+{
+  "name": "nft",
+  "version": "1.0.0",
+  "description": "a nft project",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "openzeppelin-test-helpers": "^0.3.2",
+    "truffle": "^5.0.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "truffle-plugin-verify": "^0.5.16",
+    "truffle-privatekey-provider": "^1.5.0"
+  }
+}
