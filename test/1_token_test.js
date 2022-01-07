@@ -33,7 +33,7 @@ contract("NFT Test",   accounts => {
             await this.nft.mint(hash1, {from: account1});
             await shouldFail.reverting.withMessage(
                 this.nft.mint(hash1, {from: account1}),
-                "duplicated"
+                "Already minted"
             );
             // check balance
             var balance = await this.nft.balanceOf(account1);
@@ -43,7 +43,7 @@ contract("NFT Test",   accounts => {
             await this.nft.mint(hash2, {from: account2});
             await shouldFail.reverting.withMessage(
                 this.nft.mint(hash2, {from: account2}),
-                "duplicated"
+                "Already minted"
             );
             // check balance
             var balance = await this.nft.balanceOf(account2);
@@ -85,12 +85,24 @@ contract("NFT Test",   accounts => {
             await this.nft.transferFrom(account1, account2, 1, {from: account1});
 
             // check balance
-            var balance = await this.nft.balanceOf(account1);
-            expect(balance).to.be.bignumber.equal(BN0);
-            var balance = await this.nft.balanceOf(account1);
-            expect(balance).to.be.bignumber.equal(BN1);
+            var balanceAccount1 = await this.nft.balanceOf(account1);
+            expect(balanceAccount1).to.be.bignumber.equal(BN0);
+            var balanceAccount2 = await this.nft.balanceOf(account2);
+            expect(balanceAccount2).to.be.bignumber.equal(BN1);
 
         });
+
+        it("can't exceed MAX_SUPPLY", async function() {
+            for (var i = 0; i < 1024; i++) {
+                console.log(i);
+                await this.nft.mint(hash1, {from: accounts[i]});
+                expect(await this.nft.balanceOf(accounts[i])).to.be.bignumber.equal(BN1);
+            }
+            await shouldFail.reverting.withMessage(
+                this.nft.mint(hash2, {from: accounts[1024]}),
+                "Max supply exceeded"
+            );
+        }).timeout(36000000); // 10 hours
 
     });
 });

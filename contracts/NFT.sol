@@ -11,17 +11,18 @@ contract NFT is ERC721Enumerable, Pausable {
     mapping(uint256 => string) _tokenURIs;
 
     mapping(address => bool) public hasMinted;
+    uint256 public MAX_SUPPLY = 1024;
 
     constructor(
         string memory _name,
         string memory _symbol
     ) ERC721(_name, _symbol) {}
 
-    // public
     function mint(string memory _tokenURI) public WhenNotPaused {
-        require(!hasMinted[msg.sender], "duplicated");
+        require(!hasMinted[msg.sender], "Already minted");
 
         uint256 tokenId = totalSupply() + 1;
+        require(tokenId <= MAX_SUPPLY, "Max supply exceeded");
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, _tokenURI);
 
