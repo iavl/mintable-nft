@@ -2,74 +2,65 @@
 pragma solidity ^0.8.0;
 
 import "./ERC721Enumerable.sol";
+import "./WhitelistAdminRole.sol";
 import "./Ownable.sol";
+import "./WhitelistAdminRole.sol";
 
-contract NFT is ERC721Enumerable, Ownable {
+
+contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
     using Strings for uint256;
 
-    string baseURI;
-    string public baseExtension = ".json";
+    string public baseURI;
+    mapping(uint256 => string) _tokenURIs;
 
     constructor(
         string memory _name,
         string memory _symbol
     ) ERC721(_name, _symbol) {}
 
-    // internal
+
+    function mint(address to, string memory _tokenURI) public onlyWhitelistAdmin {
+        uint256 tokenId = totalSupply() + 1;
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, _tokenURI);
+    }
+
+    function addWhitelistAdmin(address account) public onlyOwner {
+        _addWhitelistAdmin(account);
+    }
+
+    function removeWhitelistAdmin(address account) public onlyOwner {
+        _removeWhitelistAdmin(account);
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory)
+    {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory base = _baseURI();
+
+        // If there is no base URI, return the token URI.
+        if (bytes(base).length == 0) {
+            return _tokenURI;
+        }
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+
+        return super.tokenURI(tokenId);
+    }
+
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURI;
     }
 
-    // public
-    function mint(address to) public onlyOwner {
-        uint256 supply = totalSupply();
-        _safeMint(to, supply + 1);
-    }
-
-    function batchMint(address to, uint256 num) public onlyOwner {
-        uint256 supply = totalSupply();
-        for (uint256 i; i < num; i++) {
-            _safeMint(to, supply + i + 1);
-        }
-    }
-
-    function walletOfOwner(address _owner)
-    public
-    view
-    returns (uint256[] memory)
-    {
-        uint256 ownerTokenCount = balanceOf(_owner);
-        uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-        for (uint256 i; i < ownerTokenCount; i++) {
-            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
-        }
-        return tokenIds;
-    }
-
-    function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
-    {
-        require(
-            _exists(tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
-        );
-
-        string memory currentBaseURI = _baseURI();
-        return bytes(currentBaseURI).length > 0
-        ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
-        : "";
-    }
-
-
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
         baseURI = _newBaseURI;
-    }
-
-    function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
-        baseExtension = _newBaseExtension;
     }
 }
