@@ -5,12 +5,14 @@ import "./ERC721Enumerable.sol";
 import "./WhitelistAdminRole.sol";
 import "./Ownable.sol";
 import "./WhitelistAdminRole.sol";
+import "./Base64.sol";
 
 
 contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
     using Strings for uint256;
 
     mapping(uint256 => string) _tokenURIs;
+    mapping(uint256 => string) _names;
 
     constructor(
         string memory _name,
@@ -18,9 +20,10 @@ contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
     ) ERC721(_name, _symbol) {}
 
 
-    function mint(address to, string memory _tokenURI) public onlyWhitelistAdmin {
+    function mint(address to, string memory _name, string memory _tokenURI) public onlyWhitelistAdmin {
         uint256 tokenId = totalSupply() + 1;
         _safeMint(to, tokenId);
+        _setName(tokenId, _name);
         _setTokenURI(tokenId, _tokenURI);
     }
 
@@ -32,21 +35,37 @@ contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
         _removeWhitelistAdmin(account);
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory)
-    {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        string memory output = string(
+            abi.encodePacked("ipfs://", _tokenURIs[tokenId])
+        );
 
-        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "',
+                        _names[tokenId],
+                        '", "description": "To be filled.", "image": "',
+                        output,
+                        '"}'
+                    )
+                )
+            )
+        );
 
-        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
-        if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked("ipfs://", _tokenURI));
-        }
+        output = string(
+            abi.encodePacked("data:application/json;base64,", json)
+        );
 
-        return "";
+        return output;
     }
 
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
         _tokenURIs[tokenId] = _tokenURI;
+    }
+
+    function _setName(uint256 tokenId, string memory _name) internal virtual {
+        _names[tokenId] = _name;
     }
 }
