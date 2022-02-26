@@ -10,7 +10,6 @@ import "./WhitelistAdminRole.sol";
 contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
     using Strings for uint256;
 
-    string public baseURI;
     mapping(uint256 => string) _tokenURIs;
 
     constructor(
@@ -38,29 +37,16 @@ contract NFT is ERC721Enumerable, Ownable, WhitelistAdminRole {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
         string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = _baseURI();
 
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
         // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
         if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked(base, _tokenURI));
+            return string(abi.encodePacked("ipfs://", _tokenURI));
         }
 
-        return super.tokenURI(tokenId);
+        return "";
     }
 
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
         _tokenURIs[tokenId] = _tokenURI;
-    }
-
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
-    }
-
-    function setBaseURI(string memory _newBaseURI) public onlyOwner {
-        baseURI = _newBaseURI;
     }
 }
